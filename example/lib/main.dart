@@ -74,6 +74,16 @@ class _MyAppState extends State<MyApp> {
     return Center(
       child: Column(
         children: <Widget>[
+          ElevatedButton(
+              onPressed: () {
+                _keyboardUtils.init();
+              },
+              child: Text('init')),
+          ElevatedButton(
+              onPressed: () {
+                _keyboardUtils.dispose();
+              },
+              child: Text('dispose')),
           Expanded(
             child: KeyboardAware(
               builder: (context, keyboardConfig) {
@@ -142,6 +152,7 @@ class _MyAppState extends State<MyApp> {
         ),
         resizeToAvoidBottomInset: false,
         body: buildSampleUsingKeyboardAwareWidget(),
+        // body:buildSampleUsingRawListener(),
       ),
     );
   }

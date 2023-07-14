@@ -42,7 +42,7 @@ class KeyboardUtils {
   void init() {
     _methodsChannel.invokeMethod('init');
     _methodsChannel.setMethodCallHandler((call) async {
-      print('callcallcall ${call.arguments}');
+      // print('callcallcall ${call.arguments}');
       if (call.method == 'show') {
         _onKeyboardListener(call.arguments);
       } else if (call.method == 'hide') {
