@@ -2,8 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:keyboard_utils_fork/keyboard_utils.dart';
-import 'package:keyboard_utils_fork/keyboard_listener.dart'
-    as keyboard_listener;
+import 'package:keyboard_utils_fork/keyboard_listener.dart' as keyboard_listener;
 import 'package:keyboard_utils_fork/widgets.dart';
 
 void main() => runApp(MyApp());
@@ -17,7 +16,7 @@ class KeyboardBloc {
 
   KeyboardUtils get keyboardUtils => _keyboardUtils;
 
-  int _idKeyboardListener;
+  late int _idKeyboardListener;
 
   void start() {
     _idKeyboardListener = _keyboardUtils.add(
@@ -50,7 +49,7 @@ class _MyAppState extends State<MyApp> {
 
   double tempHeight = 0;
 
-  int tempId;
+  late int tempId;
 
   @override
   void initState() {
@@ -67,7 +66,8 @@ class _MyAppState extends State<MyApp> {
         },
       ),
     );
-    _bloc.start();
+    _keyboardUtils.init();
+    // _bloc.start();
   }
 
   Widget buildSampleUsingKeyboardAwareWidget() {
@@ -125,8 +125,7 @@ class _MyAppState extends State<MyApp> {
           StreamBuilder<double>(
               stream: _bloc.stream,
               builder: (BuildContext context, AsyncSnapshot<double> snapshot) {
-                return Text(
-                    'is keyboard open: ${_bloc.keyboardUtils.isKeyboardOpen}\n'
+                return Text('is keyboard open: ${_bloc.keyboardUtils.isKeyboardOpen}\n'
                     'Height: ${_bloc.keyboardUtils.keyboardHeight}');
               }),
         ],
@@ -149,8 +148,9 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
-    _bloc.dispose();
+    // _bloc.dispose();
     _keyboardUtils.unsubscribeListener(subscribingId: tempId);
+    _keyboardUtils.dispose();
     super.dispose();
   }
 }
