@@ -447,3 +447,6 @@ version
 android/fastlane/report.xml
 fastlane/report.xml
 #example/.flutter-plugins-dependencies
+
+
+.vscode/

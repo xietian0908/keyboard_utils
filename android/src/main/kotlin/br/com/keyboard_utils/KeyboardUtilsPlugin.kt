@@ -6,25 +6,31 @@ import br.com.keyboard_utils.keyboard.KeyboardHeightListener
 import br.com.keyboard_utils.keyboard.KeyboardUtils;
 import br.com.keyboard_utils.keyboard.KeyboardOptions;
 import br.com.keyboard_utils.utils.KeyboardConstants.Companion.CHANNEL_IDENTIFIER
+import br.com.keyboard_utils.utils.KeyboardConstants.Companion.CHANNEL_IDENTIFIER_METHODS
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
-import io.flutter.plugin.common.BinaryMessenger
-import io.flutter.plugin.common.EventChannel
-import io.flutter.plugin.common.PluginRegistry
+import io.flutter.plugin.common.*
 
-class KeyboardUtilsPlugin : FlutterPlugin, ActivityAware, EventChannel.StreamHandler {
+class KeyboardUtilsPlugin : FlutterPlugin, ActivityAware,MethodChannel.MethodCallHandler {
     private var keyboardUtil: KeyboardUtils? = null
     private var flutterPluginBinding: FlutterPlugin.FlutterPluginBinding? = null
     private var activityPluginBinding: ActivityPluginBinding? = null
     private var activity: Activity? = null
-    private var eventChannel: EventChannel? = null
+//    private var eventChannel: EventChannel? = null
+
+    private var methodChannel:MethodChannel?= null;
 
 
     private fun setup(activity: Activity?, messenger: BinaryMessenger) {
-        if (eventChannel == null) {
-            eventChannel = EventChannel(messenger, CHANNEL_IDENTIFIER)
-            eventChannel?.setStreamHandler(this)
+//        if (eventChannel == null) {
+//            eventChannel = EventChannel(messenger, CHANNEL_IDENTIFIER)
+//            eventChannel?.setStreamHandler(this)
+//        }
+
+        if(methodChannel == null){
+            methodChannel = MethodChannel(messenger, CHANNEL_IDENTIFIER_METHODS)
+            methodChannel?.setMethodCallHandler(this);
         }
 
         this.activity = activity
@@ -36,7 +42,10 @@ class KeyboardUtilsPlugin : FlutterPlugin, ActivityAware, EventChannel.StreamHan
     }
 
     private fun tearDown() {
-        eventChannel = null
+        methodChannel?.setMethodCallHandler(null);
+        methodChannel=null
+
+//        eventChannel = null
         activityPluginBinding = null
         keyboardUtil?.unregisterKeyboardHeightListener()
         keyboardUtil = null
@@ -82,22 +91,49 @@ class KeyboardUtilsPlugin : FlutterPlugin, ActivityAware, EventChannel.StreamHan
         onDetachedFromActivity()
     }
 
-    override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+//    override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+//        activity?.apply {
+//            keyboardUtil?.registerKeyboardHeightListener(activity, object : KeyboardHeightListener {
+//                override fun open(height: Int) {
+//                    val tempHeight = DisplayUtil.pxTodp(activity, height.toFloat())
+//                    val resultJSON = KeyboardOptions(isKeyboardOpen = true, height = tempHeight)
+//                    events?.success(resultJSON.toJson())
+//                }
+//
+//                override fun hide() {
+//                    val resultJSON = KeyboardOptions(isKeyboardOpen = false, height = 0)
+//                    events?.success(resultJSON.toJson())
+//                }
+//            })
+//        }
+//    }
+
+    private fun initListener() {
         activity?.apply {
             keyboardUtil?.registerKeyboardHeightListener(activity, object : KeyboardHeightListener {
                 override fun open(height: Int) {
                     val tempHeight = DisplayUtil.pxTodp(activity, height.toFloat())
                     val resultJSON = KeyboardOptions(isKeyboardOpen = true, height = tempHeight)
-                    events?.success(resultJSON.toJson())
+                    methodChannel?.invokeMethod("show", resultJSON.toJson())
+//                    events?.success(resultJSON.toJson())
                 }
 
                 override fun hide() {
                     val resultJSON = KeyboardOptions(isKeyboardOpen = false, height = 0)
-                    events?.success(resultJSON.toJson())
+                    methodChannel?.invokeMethod("hide", resultJSON.toJson())
+//                    events?.success(resultJSON.toJson())
                 }
             })
         }
     }
 
-    override fun onCancel(arguments: Any?) {}
+//    override fun onCancel(arguments: Any?) {}
+    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        when(call.method){
+            "init"-> initListener()
+            "dispose"->{
+                keyboardUtil?.unregisterKeyboardHeightListener()
+            }
+        }
+    }
 }

@@ -1,7 +1,5 @@
-import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'keyboard_listener.dart';
@@ -9,14 +7,15 @@ import 'keyboard_options.dart';
 
 class KeyboardUtils {
   KeyboardUtils() {
-    if (!kIsWeb) {
-      _keyboardSubscription ??= _eventChannel.receiveBroadcastStream().listen(_onKeyboardListener);
-    }
+    // if (!kIsWeb) {
+    //   _keyboardSubscription ??= _eventChannel.receiveBroadcastStream().listen(_onKeyboardListener);
+    // }
   }
 
-  static const EventChannel _eventChannel = EventChannel('keyboard_utils');
+  // static const EventChannel _eventChannel = EventChannel('keyboard_utils');
+  static const MethodChannel _methodsChannel = MethodChannel('keyboard_utils_methods');
 
-  static StreamSubscription? _keyboardSubscription;
+  // static StreamSubscription? _keyboardSubscription;
 
   static int _count = 0;
 
@@ -38,6 +37,18 @@ class KeyboardUtils {
     if (keyboardOptions != null) {
       _notifyListenersWith(keyboardOptions: keyboardOptions);
     }
+  }
+
+  void init() {
+    _methodsChannel.invokeMethod('init');
+    _methodsChannel.setMethodCallHandler((call) async {
+      print('callcallcall ${call.arguments}');
+      if (call.method == 'show') {
+        _onKeyboardListener(call.arguments);
+      } else if (call.method == 'hide') {
+        _onKeyboardListener(call.arguments);
+      }
+    });
   }
 
   KeyboardOptions? _decodeDataToKeyboardOptions({required Object? data}) {
@@ -123,10 +134,12 @@ class KeyboardUtils {
 
   ///  function to clear class on dispose.
   void dispose() {
-    if (canCallDispose()) {
-      _keyboardSubscription?.cancel().catchError((e) {});
-      _keyboardSubscription = null;
-    }
+    _methodsChannel.invokeMethod('dispose');
+    _methodsChannel.setMethodCallHandler(null);
+    // if (canCallDispose()) {
+    //   _keyboardSubscription?.cancel().catchError((e) {});
+    //   _keyboardSubscription = null;
+    // }
   }
 
   bool canCallDispose() {
